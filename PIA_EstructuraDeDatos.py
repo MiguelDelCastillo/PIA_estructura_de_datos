@@ -147,13 +147,6 @@ while True:
         finally:
             if conn:
                 conn.close()
-#         print("{0:<10} {1:<20} {2:<20} {3:<20} {4:<20}".format("Folio","Descripcion","Cantidad","Precio Unitario","Fecha"))         
-#         total_ventas = 0
-#         total_ventas = (int(items.precio_venta) * int(items.cantidad_pzas)) + total_ventas
-#         print(f"Total de las ventas: {total_ventas}")
-#         print(f"El iva aplicable es de: {total_ventas * .16}")
-#         print(f"El total con iva aplicado es de: {round(total_ventas*1.16, 2)}")
-
     elif respuesta == 3:
         print("Finalizando")
         break
