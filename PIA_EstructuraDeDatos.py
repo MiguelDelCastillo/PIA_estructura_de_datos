@@ -3,14 +3,17 @@ import csv
 import sqlite3
 import sys
 from sqlite3 import Error
+import datetime
 from datetime import datetime
+from datetime import timedelta
 
 Datos = namedtuple("Ventas",("descripcion", "cantidad_pzas","precio_venta", "fecha"))
 lista_ventas = []
 diccionario_ventas = {}
-
-fecha_actual = datetime.today()
+today = datetime.today()
+fecha_actual = today.strftime("%d/%m/%y")
 total = 0
+folioActualizado = 1
 while True:
     print("\n\tLlantas Michelin")
     print("Bienvenido al programa por favor elige una opcion: \n")
@@ -21,43 +24,21 @@ while True:
     respuesta = int(input("Elija una opción: "))
     if respuesta == 1:
         lista_ventas = []
-        while True:
-            try:
-                folio = int(input('\nIngrese el folio de la venta: '))
-                try:
-                    with sqlite3.connect("PIADB.db") as conn:
-                        mi_cursor = conn.cursor()
-                        mi_cursor.execute("SELECT folio FROM FechaID WHERE folio = ?",(folio,))
-                        comprobacion_folio = mi_cursor.fetchall()
-                        if comprobacion_folio:
-                            print('\nEsta clave ya existe, porfavor ingresa otra')
-                            break
-                        else:
-                            break
-                except Error as e:
-                    print(e)
-                except Exception:
-                    print(f"Error: {sys.exc_info()[0]}")
-                finally:
-                    if conn:
-                        conn.close()
-                break
-            except Exception:
-                print("Porfavor, ingresa un formato valido!")
-            
-        while True:
-            print("\nPor favor, ingrese la fecha de la venta")
-            print("El formato para ingresar la fecha de la venta, es el siguiente:")
-            print("\tDIA/MES/AÑO\nEjemplo: 12/10/20")
-            try:
-                fecha_venta = input('\nIngrese la fecha de venta: ')
-                fecha_venta_convertido = datetime.strptime(fecha_venta, '%d/%m/%y')
-                if fecha_venta_convertido < fecha_actual:
-                    break
-                else:
-                    print(f"\nFecha no valida!, porfavor ingrese otra.")
-            except Exception:
-                print("\nPor favor, ingresa un formato valido!\n")
+        try:
+            with sqlite3.connect("PIADB.db") as conn:
+                mi_cursor = conn.cursor()
+                mi_cursor.execute("SELECT count(folio), fecha FROM FechaID;")
+                registro = mi_cursor.fetchall()
+                if registro:
+                    for folio, fecha in registro:
+                        folioActualizado = folio + 1
+        except Error as e:
+                print(e)
+        except Exception:
+            print(f"Error: {sys.exc_info()[0]}")
+        finally:
+            if conn:
+                conn.close()            
         while True:
             # Insercion de datos
             while True:
@@ -74,10 +55,10 @@ while True:
                     print("Porfavor, ingrese en los campos, el formato correcto")
             print("-----------------------------------------------------------\n")
             # Lista
-            ventas = Datos(descripcion,cantidad_pzas, precio_venta, fecha_venta)
+            ventas = Datos(descripcion,cantidad_pzas, precio_venta, fecha_actual)
             lista_ventas.append(ventas)
             # Diccionario
-            diccionario_ventas[folio] = lista_ventas
+            diccionario_ventas[folioActualizado] = lista_ventas
             # Seguir agregando
             respuesta1 = int(input('¿Quieres seguir agregando productos?\n\t 1: Si\n\t 2: No\n\t'))
             # En caso de que no quiera seguir agregando
@@ -118,10 +99,11 @@ while True:
             try:
                 busqueda = input('\nIngrese la fecha a buscar: ')
                 fecha_venta_convertido = datetime.strptime(busqueda, '%d/%m/%y')
-                if fecha_venta_convertido < fecha_actual:
-                    break
-                else:
+                NextDay_Date = datetime.today() + timedelta(days=1)
+                if fecha_venta_convertido > NextDay_Date:
                     print(f"\nFecha no valida!, porfavor ingresa otra.")
+                else:
+                    break
             except Exception:
                 print("\nPor favor, ingresa un formato valido!")
         try:
