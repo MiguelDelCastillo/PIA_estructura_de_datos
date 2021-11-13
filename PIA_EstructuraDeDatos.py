@@ -5,7 +5,6 @@ import sys
 from sqlite3 import Error
 from datetime import datetime
 
-
 Datos = namedtuple("Ventas",("descripcion", "cantidad_pzas","precio_venta", "fecha"))
 lista_ventas = []
 diccionario_ventas = {}
@@ -20,27 +19,32 @@ while True:
     print("\t3) Salir")
     print("\nPuede ingresar la opcion mediante \nel teclado numerico")
     respuesta = int(input("Elija una opción: "))
-    
     if respuesta == 1:
         lista_ventas = []
         while True:
-            folio = int(input('\nIngrese el folio de la venta: '))
             try:
-                with sqlite3.connect("PIADB.db") as conn:
-                    mi_cursor = conn.cursor()
-                    mi_cursor.execute("SELECT folio FROM FechaID WHERE folio = ?",(folio,))
-                    comprobacion_folio = mi_cursor.fetchall()
-                    if comprobacion_folio:
-                        print('\nEsta clave ya existe, porfavor ingresa otra')
-                    else:
-                        break
-            except Error as e:
-                print(e)
+                folio = int(input('\nIngrese el folio de la venta: '))
+                try:
+                    with sqlite3.connect("PIADB.db") as conn:
+                        mi_cursor = conn.cursor()
+                        mi_cursor.execute("SELECT folio FROM FechaID WHERE folio = ?",(folio,))
+                        comprobacion_folio = mi_cursor.fetchall()
+                        if comprobacion_folio:
+                            print('\nEsta clave ya existe, porfavor ingresa otra')
+                            break
+                        else:
+                            break
+                except Error as e:
+                    print(e)
+                except Exception:
+                    print(f"Error: {sys.exc_info()[0]}")
+                finally:
+                    if conn:
+                        conn.close()
+                break
             except Exception:
-                print(f"Error: {sys.exc_info()[0]}")
-            finally:
-                if conn:
-                    conn.close()
+                print("Porfavor, ingresa un formato valido!")
+            
         while True:
             print("\nPor favor, ingrese la fecha de la venta")
             print("El formato para ingresar la fecha de la venta, es el siguiente:")
@@ -57,26 +61,25 @@ while True:
         while True:
             # Insercion de datos
             while True:
-                descripcion = input(f'\nIngrese la descripcion de la llanta: ')
-                cantidad_pzas = input('Ingrese la cantidad de piezas a comprar: ')
-                precio_venta = input('Ingrese el precio unitario de cada pieza: ')
-                
-                if descripcion.replace(" ","") != "" and cantidad_pzas != 0 and precio_venta != 0:
-                    break
-                else:
-                    print("\nPor favor, no ingrese datos vacios, o coloque 0")
-            
+                try:
+                    descripcion = input(f'\nIngrese la descripcion de la llanta: ')
+                    cantidad_pzas = int(input('Ingrese la cantidad de piezas a comprar: '))
+                    precio_venta = int(input('Ingrese el precio unitario de cada pieza: '))
+                    
+                    if descripcion.replace(" ","") != "" and cantidad_pzas != 0 and precio_venta != 0:
+                        break
+                    else:
+                        print("\nPor favor, no ingrese datos vacios, o coloque 0's")
+                except Exception:
+                    print("Porfavor, ingrese en los campos, el formato correcto")
             print("-----------------------------------------------------------\n")
             # Lista
             ventas = Datos(descripcion,cantidad_pzas, precio_venta, fecha_venta)
             lista_ventas.append(ventas)
-            
             # Diccionario
             diccionario_ventas[folio] = lista_ventas
-            
             # Seguir agregando
             respuesta1 = int(input('¿Quieres seguir agregando productos?\n\t 1: Si\n\t 2: No\n\t'))
-            
             # En caso de que no quiera seguir agregando
             if (respuesta1 != 1):
                 total_ventas = 0
